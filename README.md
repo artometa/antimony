@@ -1,4 +1,9 @@
 ## About
+
+| Build | Status |
+| --- | --- |
+| Ubuntu 16.04 | [![Build Status](https://travis-ci.org/artometa/antimony.svg?branch=develop)](https://travis-ci.org/artometa/antimony) |
+
 *Antimony* is a computer-aided design (CAD) tool from a parallel universe
 in which CAD software evolved from Lisp machines rather than drafting tables
 

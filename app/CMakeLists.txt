@@ -158,14 +158,14 @@ target_link_libraries(${ANTIMONY_APP}
 
 ################################################################################
 
-execute_process(COMMAND git log --pretty=format:'%h' -n 1
+execute_process(COMMAND git -C ${CMAKE_SOURCE_DIR} log --pretty=format:'%h' -n 1
                 OUTPUT_VARIABLE GITREV)
-execute_process(COMMAND bash -c "git diff --quiet --exit-code || echo +"
+execute_process(COMMAND bash -c "git -C ${CMAKE_SOURCE_DIR} diff --quiet --exit-code || echo +"
                 OUTPUT_VARIABLE GITDIFF)
-execute_process(COMMAND git describe --exact-match --tags
+execute_process(COMMAND git -C ${CMAKE_SOURCE_DIR} describe --exact-match --tags
                 OUTPUT_VARIABLE GITTAG
                 ERROR_QUIET)
-execute_process(COMMAND git rev-parse --abbrev-ref HEAD
+execute_process(COMMAND git -C ${CMAKE_SOURCE_DIR} rev-parse --abbrev-ref HEAD
                 OUTPUT_VARIABLE GITBRANCH)
 
 add_definitions(-D'GITREV="${GITREV}${GITDIFF}"'
@@ -184,4 +184,3 @@ target_include_directories(${ANTIMONY_APP} SYSTEM PRIVATE
 
 set_property(TARGET ${ANTIMONY_APP} PROPERTY CXX_STANDARD 11)
 set_property(TARGET ${ANTIMONY_APP} PROPERTY C_STANDARD 99)
-
