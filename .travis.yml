@@ -1,0 +1,61 @@
+language: cpp
+
+fast_finish: false
+
+matrix:
+  allow_failures:
+    - env: ALLOW_FAILURES=true
+
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      services:
+        - docker
+
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      docker pull ubuntu:xenial;
+      docker run -d --name xenial -v /work:/work -dti ubuntu:xenial bash;
+      docker ps -a;
+      docker exec -t xenial bash -c "mkdir -p /work/repo";
+      docker cp . xenial:/work/repo;
+      docker exec xenial apt-get update;
+      docker exec xenial apt-get -y upgrade;
+      docker exec xenial apt-get -y install cmake git wget unzip sudo lemon flex;
+      docker exec xenial apt-get -y install build-essential software-properties-common clang ninja-build;
+      docker exec xenial apt-get -y install libpng-dev python3-dev libboost-all-dev libgl1-mesa-dev qt5-default;
+      docker exec xenial apt-get -y install debhelper dh-virtualenv desktop-file-utils;
+    fi
+
+script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      docker exec -t xenial bash -c "cmake -H/work/repo -B/work/repo/build -GNinja && ninja -C /work/repo/build";
+      docker exec -t xenial bash -c "cd /work/repo && ln -s deploy/linux/debian && dpkg-buildpackage -us -uc";
+    fi
+
+before_deploy:
+    # Set up git user name and tag this commit
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      echo "creating local tag";
+      docker exec -t xenial bash -c "git -C /work/repo config --local user.name 'Adnan Y'";
+      docker exec -t xenial bash -c "git -C /work/repo config --local user.email adnan@artometa.com";
+      docker exec -t xenial bash -c "git -C /work/repo tag \"$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)\"";
+      docker exec -t xenial bash -c "git -C /work/repo tag";
+      ls /work;
+    fi
+
+deploy:
+  provider: releases
+  api_key:
+      secure: sSly6OFbBz3EA5gKd4maUU3QjxjNR4lP+G7oUGfVVch590VPUJHzyX3N0FPUUUE8fmdiIhPYJNr/34vO5yYj0n2pcRkRJ3Ba8yO6DgVLFpNGH3Dn1WHbmhKo7CX1ycDYPDGssCnqE+AB63p8nrwgtHTAAZvDXweoioZ4ni9N4Hs0KNuRJUYR3EVIAZDqvDGQY8OBoKh3emN6TUkvIAUE6qZNMX1VIkCvbwYW1lbSq5jZvql0x09P54gSt84q7V9UAafUODQmsZfIsfpD8Mf4qoFA1T6xq9HIN7fpOs/qzfbiSZfPHdq4NX64GvE3uT7zv/3cm49d2g4JIPlFEzhH8xW8I0zlY3D4cY6ITCjukvYhIhDSigUIsv5+zS6tIfINDPt5ETDSLtS4CchGCTUCNEOWDcX8JTHHM/XNCvnBZPmCkm6LkEaf7/OAwY2g6eTfSsmpHxgnDTmvMIZPiHC+nxi76d561dxkmWLtVbgGRyOTiY3VC4hssTgtNfN0Bx47B/QYnbR0ui+SgA6CAoPT3dlyZOjVpixPVD25/l36rNaexIrH9wMK6tHyo/ttxJGzr11OqmgcZBNRax0ExtM2lhM/db4kNSzY+Vr8dcOiBlGPgcPYMhiBRJdTVkAzRtjv2rYMGUgMztt8r3OOKkePKYjFpLhJmxxJP+4tzDhkAhg=
+  file:
+    - "/work/antimony*.deb"
+    - "/work/antimony*.changes"
+    - "/work/antimony*.xz"
+    - "/work/antimony*.dsc"
+  skip_cleanup: true
+  on:
+    branch:
+      - develop
+      - master

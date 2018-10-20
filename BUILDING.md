@@ -1,4 +1,9 @@
+| Build | Status |
+| --- | --- |
+| Ubuntu 16.04 | [![Build Status](https://travis-ci.org/artometa/antimony.svg?branch=develop)](https://travis-ci.org/artometa/antimony) |
+
 Requirements
+
 ------------
 - [Qt 5.4 or later](http://www.qt.io/)
 - [Python 3](https://www.python.org/)
